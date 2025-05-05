@@ -131,6 +131,107 @@
         padding: 12px 10px;
       }
     }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+      touch-action: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal {
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      animation: popIn 0.3s ease-out;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      position: relative;
+      margin: 20px;
+      touch-action: manipulation;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-text {
+      font-size: 1.5rem;
+      color: #a259e6;
+      font-weight: 800;
+      margin-bottom: 24px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .modal-button {
+      background: #a259e6;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .modal-button:active {
+      background: #6d2eb1;
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 700px) {
+      .modal {
+        padding: 24px;
+        margin: 16px;
+      }
+      
+      .modal-text {
+        font-size: 1.3rem;
+      }
+      
+      .modal-button {
+        padding: 14px 28px;
+        font-size: 1.1rem;
+        width: 100%;
+      }
+    }
+
+    @supports (-webkit-touch-callout: none) {
+      /* iOS-specific fixes */
+      .modal-overlay {
+        position: absolute;
+        height: -webkit-fill-available;
+      }
+      
+      .modal {
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -141,6 +242,14 @@
     </form>
     <div class="quiz-result" id="quizResult"></div>
   </div>
+  
+  <div class="modal-overlay" id="perfectScoreModal">
+    <div class="modal">
+      <div class="modal-text">You scored 10/10! Perfect! You're a supplement Pro! 🎯</div>
+      <button class="modal-button">Congratulations!</button>
+    </div>
+  </div>
+
   <script>
     const quizData = [
       {
@@ -281,16 +390,26 @@
         if (selected && parseInt(selected.value) === item.answer) {
           score++;
           feedback.innerText = 'Correct!';
-          feedback.style.color = '#2ecc40'; // green
+          feedback.style.color = '#2ecc40';
         } else {
           feedback.innerText = 'Incorrect.';
-          feedback.style.color = '#e74c3c'; // red
+          feedback.style.color = '#e74c3c';
         }
         optionsDiv.appendChild(feedback);
       });
+
       let feedbackMsg = '';
       if (score === quizData.length) {
         feedbackMsg = "🏆 Perfect! You're a supplement pro!";
+        // Show the modal for perfect score
+        const modal = document.getElementById('perfectScoreModal');
+        modal.style.display = 'flex';
+        
+        // Add click handler to the congratulations button
+        const modalButton = modal.querySelector('.modal-button');
+        modalButton.onclick = function() {
+          modal.style.display = 'none';
+        };
       } else if (score >= 8) {
         feedbackMsg = "Great work! You're on the verge of supplement mastery.";
       } else if (score >= 6) {
@@ -323,6 +442,21 @@
       quizResult.innerHTML = '';
     };
     quizForm.appendChild(resetBtn);
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Prevent scrolling when modal is open
+      const modal = document.getElementById('perfectScoreModal');
+      modal.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+      
+      // Close modal on overlay click (but not modal content click)
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
   </script>
 </body>
 </html> 
